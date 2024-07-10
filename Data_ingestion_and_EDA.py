@@ -126,4 +126,8 @@ df.select([count(when(col(c).isNull(), c)).alias(c) for c in df.columns]).displa
 
 # COMMAND ----------
 
+df.write.parquet('dbfs:/FileStore/Pinaki/ML_datasest/refined_data.parquet')
+
+# COMMAND ----------
+
 

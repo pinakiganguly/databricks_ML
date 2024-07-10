@@ -84,4 +84,24 @@ type(object_cols)
 
 # COMMAND ----------
 
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import train_test_split
+ 
+X = df_final.drop(['SalePrice'], axis=1)
+Y = df_final['SalePrice']
+
+# COMMAND ----------
+
+X
+
+# COMMAND ----------
+
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import train_test_split
+ 
+X = df_spark.drop('SalePrice')
+# Y = df_final['SalePrice']
+
+# COMMAND ----------
+
 
