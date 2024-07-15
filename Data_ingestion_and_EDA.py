@@ -1,12 +1,26 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC ##Importing all necessary libraries
+
+# COMMAND ----------
+
 from pyspark.sql.functions import *
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ##Reading data from databricks file system and loading it in a dataframe
+
+# COMMAND ----------
 
 raw_df=spark.read.csv('dbfs:/FileStore/Pinaki/ML_datasest/houseprice.csv',header=True,inferSchema=True)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Synthesizing data for making it ready for ML and changing the datatypes of the data
 
 # COMMAND ----------
 
@@ -30,11 +44,17 @@ df1 = (
 
 # COMMAND ----------
 
-df1.display()
+df1.display() # displaying new dataframe
 
 # COMMAND ----------
 
+#Display the size of the dataframe
 print(df1.count(),',',len(df1.columns))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Segregating the numerical and categorical data columns from the dataframe.
 
 # COMMAND ----------
 
@@ -59,12 +79,27 @@ print("Float variables:", len(fl_list))
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ##Storing the names of the columns in a list which are numerical
+
+# COMMAND ----------
+
 num_cols=[]
 for i in num_list:
     num_cols.append(i)
 for j in fl_list:
     num_cols.append(j)
 print(len(num_cols))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Vectorising the columns which are numerical(transforming all the columns which are numerical to a single list and then putting them in another column)
+# MAGIC ####Eg. +---+---+---+-------------+
+# MAGIC ####|  a|  b|  c|     features|
+# MAGIC ####+---+---+---+-------------+
+# MAGIC ####|5.0|6.0|7.0|[5.0,6.0,7.0]|
+# MAGIC ####+---+---+---+-------------+
 
 # COMMAND ----------
 
@@ -78,14 +113,25 @@ df_vector = assembler.transform(df1).select(vector_col)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ##Finding out the correlation matrix from the data
+
+# COMMAND ----------
+
 matrix = Correlation.corr(df_vector, vector_col).collect()[0][0]
 corrmatrix = matrix.toArray().tolist()
 print(corrmatrix)
 
 # COMMAND ----------
 
+#Storing the correlation matrix in dataframe and then displaying it
 df_corr = spark.createDataFrame(corrmatrix,num_cols)
 df_corr.display()
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Drawing of correlation matrix using heatmap
 
 # COMMAND ----------
 
@@ -103,6 +149,11 @@ plot_corr_matrix(corrmatrix, num_cols, 234,(12,12),annot=True)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ##Refining of data by removing duplicates
+
+# COMMAND ----------
+
 unique_vals=[]
 for col in str_lis:
     unique_vals.append(df1.select(col).distinct().count())
@@ -110,6 +161,11 @@ plt.figure(figsize=(10,6))
 plt.title('No. Unique values of Categorical Features')
 plt.xticks(rotation=90)
 sns.barplot(x=str_lis,y=unique_vals)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Unwanted column removed
 
 # COMMAND ----------
 
@@ -121,13 +177,19 @@ df.display()
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ##Displaying the whole dataset to check if there is any column with null values
+
+# COMMAND ----------
+
 from pyspark.sql.functions import *
 df.select([count(when(col(c).isNull(), c)).alias(c) for c in df.columns]).display()
 
 # COMMAND ----------
 
-df.write.parquet('dbfs:/FileStore/Pinaki/ML_datasest/refined_data.parquet')
+# MAGIC %md
+# MAGIC ## Writing the refined data in parquet format in dbfs
 
 # COMMAND ----------
 
-
+df.write.parquet('dbfs:/FileStore/Pinaki/ML_datasest/refined_data.parquet')
