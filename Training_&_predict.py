@@ -69,7 +69,3 @@ r2 = r2_score(
 # COMMAND ----------
 
 print("R2 score:", r2*100,'%')
-
-# COMMAND ----------
-
-
